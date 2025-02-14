@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore di Messaggi Cifrati - 5 Alfabeti</title>
+    <style>
+        :root[data-theme="light"] {
+            --primary-color: #2563eb;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --secondary-color: #0f7618;
+            --card-bg: white;
+            --matrix-color: rgba(0, 255, 0, 0.1);
+        }
+
+        :root[data-theme="dark"] {
+            --primary-color: #60a5fa;
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --border-color: #1e293b;
+            --secondary-color: #0f7618;
+            --card-bg: #1e293b;
+            --matrix-color: rgb(43, 105, 43);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: var(--background-color);
+            overflow: hidden;
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -1000px; /* Aumentato per più caratteri */
+            width: 15px; /* Ridotto per avere più colonne */
+            color: #0f0; /* Verde base per light mode */
+            text-shadow: 0 0 5px #0f0; /* Effetto neon base */
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            animation: matrix-rain linear infinite;
+        }
+
+        /* Dark theme specifico per matrix */
+        :root[data-theme="dark"] .matrix-column {
+            color: #00ff00; /* Verde più brillante */
+            text-shadow: 
+                0 0 5px #00ff00,
+                0 0 10px #00ff00,
+                0 0 15px #00ff00; /* Triplo glow per effetto neon */
+            opacity: 0.8; /* Opacità per effetto profondità */
+        }
+
+        @keyframes matrix-rain {
+            to {
+                transform: translateY(200vh);
+            }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-top: 2rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        textarea, input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: transform 0.2s, background-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        button:active::after {
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+
+        .decrypt-button {
+            background-color: var(--secondary-color);
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .example-card {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s;
+        }
+
+        .example-card:hover {
+            transform: scale(1.02);
+        }
+
+        .alphabet-mapping {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+
+        .mapping-item {
+            background: var(--background-color);
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+            transition: transform 0.2s;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .mapping-item:hover {
+            transform: scale(1.1);
+        }
+
+        .cipher-section {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .decipher-section {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 1rem;
+        }
+
+        .current-alphabet {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg" id="matrixBg"></div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Cambia tema">🌓</button>
+    <div class="container">
+        <h1>Generatore di Messaggi Cifrati - 5 Alfabeti</h1>
+        
+        <div class="card">
+            <h2>Come Funziona</h2>
+            <p>Questo sistema di cifratura utilizza 5 alfabeti predefiniti per codificare i messaggi. 
+               Ogni alfabeto ha una propria mappatura unica delle lettere. Quando si esauriscono i 5 alfabeti, 
+               il sistema ricomincia dal primo.</p>
+            <p>La chiave di cifratura corrente è essenziale per decifrare i messaggi: senza conoscerla, 
+               è impossibile recuperare il testo originale.</p>
+        </div>
+
+        <div class="card">
+            <h2>Alfabeto Segreto Attuale</h2>
+            <div class="current-alphabet">Alfabeto corrente: <span id="currentAlphabetNumber">1</span></div>
+            <div id="alphabetMapping" class="alphabet-mapping">
+                <!-- Verrà popolato da JavaScript -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Prova la Cifratura e Decifratura</h2>
+            
+            <div class="cipher-section">
+                <h3>Cifratura</h3>
+                <div class="form-group">
+                    <label for="inputText">Inserisci il tuo messaggio da cifrare:</label>
+                    <textarea id="inputText" rows="4" placeholder="Scrivi qui il testo da cifrare..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Testo Cifrato:</label>
+                    <textarea id="outputText" rows="4" readonly></textarea>
+                </div>
+                <button onclick="encryptText()">Cifra il Messaggio</button>
+            </div>
+
+            <div class="decipher-section">
+                <h3>Decifratura</h3>
+                <div class="form-group">
+                    <label for="inputEncrypted">Inserisci il messaggio cifrato:</label>
+                    <textarea id="inputEncrypted" rows="4" placeholder="Inserisci qui il testo cifrato da decifrare..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Testo Decifrato:</label>
+                    <textarea id="outputDecrypted" rows="4" readonly></textarea>
+                </div>
+                <button onclick="decryptText()" class="decrypt-button">Decifra il Messaggio</button>
+            </div>
+
+            <button onclick="switchToNextAlphabet()" style="background-color: #64748b; margin-top: 1rem;">Cambia Alfabeto</button>
+        </div>
+
+        <div class="card">
+            <h2>Esempi di Cifratura</h2>
+            <div class="examples" id="exampleSection">
+                <!-- Verrà popolato da JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Definizione dei 5 alfabeti predefiniti
+        const predefinedAlphabets = [
+            {
+                A: 'Q', B: 'W', C: 'E', D: 'R', E: 'T', F: 'Y', G: 'U', H: 'I', 
+                I: 'O', J: 'P', K: 'A', L: 'S', M: 'D', N: 'F', O: 'G', P: 'H', 
+                Q: 'J', R: 'K', S: 'L', T: 'Z', U: 'X', V: 'C', W: 'V', X: 'B', 
+                Y: 'N', Z: 'M'
+            },
+            {
+                A: 'M', B: 'N', C: 'B', D: 'V', E: 'C', F: 'X', G: 'Z', H: 'L', 
+                I: 'K', J: 'J', K: 'H', L: 'G', M: 'F', N: 'D', O: 'S', P: 'A', 
+                Q: 'P', R: 'O', S: 'I', T: 'U', U: 'Y', V: 'T', W: 'R', X: 'E', 
+                Y: 'W', Z: 'Q'
+            },
+            {
+                A: 'Z', B: 'Y', C: 'X', D: 'W', E: 'V', F: 'U', G: 'T', H: 'S', 
+                I: 'R', J: 'Q', K: 'P', L: 'O', M: 'N', N: 'M', O: 'L', P: 'K', 
+                Q: 'J', R: 'I', S: 'H', T: 'G', U: 'F', V: 'E', W: 'D', X: 'C', 
+                Y: 'B', Z: 'A'
+            },
+            {
+                A: 'E', B: 'F', C: 'G', D: 'H', E: 'I', F: 'J', G: 'K', H: 'L', 
+                I: 'M', J: 'N', K: 'O', L: 'P', M: 'Q', N: 'R', O: 'S', P: 'T', 
+                Q: 'U', R: 'V', S: 'W', T: 'X', U: 'Y', V: 'Z', W: 'A', X: 'B', 
+                Y: 'C', Z: 'D'
+            },
+            {
+                A: 'N', B: 'Z', C: 'P', D: 'Q', E: 'W', F: 'S', G: 'X', H: 'V', 
+                I: 'U', J: 'Y', K: 'T', L: 'R', M: 'O', N: 'I', O: 'L', P: 'K', 
+                Q: 'M', R: 'J', S: 'H', T: 'G', U: 'F', V: 'D', W: 'C', X: 'E', 
+                Y: 'B', Z: 'A'
+            }
+        ];
+
+        let currentAlphabetIndex = 0;
+let alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
+let reverseMapping = {};
+
+function updateReverseMapping() {
+    reverseMapping = {};
+    for (let [original, mapped] of Object.entries(alphabetMapping)) {
+        reverseMapping[mapped] = original;
+    }
+}
+
+function displayMapping() {
+    const mappingDiv = document.getElementById('alphabetMapping');
+    mappingDiv.innerHTML = '';
+    
+    for (let [original, mapped] of Object.entries(alphabetMapping)) {
+        const mappingItem = document.createElement('div');
+        mappingItem.className = 'mapping-item';
+        mappingItem.textContent = `${original} → ${mapped}`;
+        mappingDiv.appendChild(mappingItem);
+    }
+
+    document.getElementById('currentAlphabetNumber').textContent = currentAlphabetIndex + 1;
+}
+
+function switchToNextAlphabet() {
+    currentAlphabetIndex = (currentAlphabetIndex + 1) % 5;
+    alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
+    updateReverseMapping();
+    displayMapping();
+    updateExamples();
+
+    // Pulisci i campi di input/output
+    document.getElementById('inputText').value = '';
+    document.getElementById('outputText').value = '';
+    document.getElementById('inputEncrypted').value = '';
+    document.getElementById('outputDecrypted').value = '';
+}
+
+function encryptText() {
+    const input = document.getElementById('inputText').value.toUpperCase();
+    const output = input.split('').map(char => {
+        if (alphabetMapping[char]) {
+            return alphabetMapping[char];
+        }
+        return char; // Mantieni i caratteri non alfabetici invariati
+    }).join('');
+    
+    document.getElementById('outputText').value = output;
+}
+
+function decryptText() {
+    const input = document.getElementById('inputEncrypted').value.toUpperCase();
+    const output = input.split('').map(char => {
+        if (reverseMapping[char]) {
+            return reverseMapping[char];
+        }
+        return char; // Mantieni i caratteri non alfabetici invariati
+    }).join('');
+    
+    document.getElementById('outputDecrypted').value = output;
+}
+
+function updateExamples() {
+    const examples = ['CIAO', 'SEGRETO', 'MESSAGGIO'];
+    const exampleSection = document.getElementById('exampleSection');
+    exampleSection.innerHTML = '';
+
+    examples.forEach(example => {
+        const encrypted = example.split('').map(char => alphabetMapping[char] || char).join('');
+        const decrypted = encrypted.split('').map(char => reverseMapping[char] || char).join('');
+        
+        const card = document.createElement('div');
+        card.className = 'example-card';
+        card.innerHTML = `
+            <strong>Originale:</strong> ${example}<br>
+            <strong>Cifrato:</strong> ${encrypted}<br>
+            <strong>Decifrato:</strong> ${decrypted}
+        `;
+        exampleSection.appendChild(card);
+    });
+}
+
+// Matrix Animation
+function createMatrixRain() {
+    const matrixBg = document.getElementById('matrixBg');
+    const width = window.innerWidth;
+    const columns = Math.floor(width / 20);
+
+    for (let i = 0; i < columns; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = (i * 20) + 'px';
+        column.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        
+        let content = '';
+        const length = Math.floor(Math.random() * 30 + 20);
+        for (let j = 0; j < length; j++) {
+            content += Math.random() > 0.5 ? '1' : '0';
+            content += '<br>';
+        }
+        column.innerHTML = content;
+        matrixBg.appendChild(column);
+    }
+}
+
+// Theme Toggle
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', newTheme);
+    
+    // Aggiungi un'animazione di transizione
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+        document.body.style.opacity = '1';
+    }, 200);
+}
+
+// Inizializza il sistema
+updateReverseMapping();
+displayMapping();
+updateExamples();
+createMatrixRain();
+
+// Ricrea l'animazione matrix quando la finestra viene ridimensionata
+window.addEventListener('resize', () => {
+    const matrixBg = document.getElementById('matrixBg');
+    matrixBg.innerHTML = '';
+    createMatrixRain();
+});
+</script>
+</body>
+</html>
