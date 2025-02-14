@@ -1,21 +1,11 @@
 <!DOCTYPE html>
-<html lang="it" data-theme="light">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generatore di Messaggi Cifrati</title>
+    <title>Generatore di Messaggi Cifrati - 5 Alfabeti</title>
     <style>
-        :root[data-theme="light"] {
-            --primary-color: #2563eb;
-            --background-color: #f8fafc;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-            --secondary-color: #0f7618;
-            --card-bg: white;
-            --matrix-color: rgba(0, 255, 0, 0.1);
-        }
-
-        :root[data-theme="dark"] {
+        :root {
             --primary-color: #60a5fa;
             --background-color: #0f172a;
             --text-color: #e2e8f0;
@@ -32,7 +22,6 @@
             padding: 20px;
             background-color: var(--background-color);
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
             overflow-x: hidden;
         }
 
@@ -50,24 +39,18 @@
 
         .matrix-column {
             position: absolute;
-            top: -1000px; /* Aumentato per più caratteri */
-            width: 15px; /* Ridotto per avere più colonne */
-            color: #0f0; /* Verde base per light mode */
-            text-shadow: 0 0 5px #0f0; /* Effetto neon base */
+            top: -1000px;
+            width: 15px;
+            color: #00ff00;
+            text-shadow: 
+                0 0 5px #00ff00,
+                0 0 10px #00ff00,
+                0 0 15px #00ff00;
             font-family: monospace;
             font-size: 14px;
             text-align: center;
             animation: matrix-rain linear infinite;
-        }
-
-        /* Dark theme specifico per matrix */
-        :root[data-theme="dark"] .matrix-column {
-            color: #00ff00; /* Verde più brillante */
-            text-shadow: 
-                0 0 5px #00ff00,
-                0 0 10px #00ff00,
-                0 0 15px #00ff00; /* Triplo glow per effetto neon */
-            opacity: 0.8; /* Opacità per effetto profondità */
+            opacity: 0.8;
         }
 
         @keyframes matrix-rain {
@@ -276,23 +259,6 @@
             }
         }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.3s;
-            z-index: 1000;
-        }
-
-        .theme-toggle:hover {
-            transform: rotate(180deg);
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -302,7 +268,6 @@
 </head>
 <body>
     <div class="matrix-bg" id="matrixBg"></div>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Cambia tema">🌓</button>
     <div class="container">
         <h1>Generatore di Messaggi Cifrati</h1>
         
@@ -399,137 +364,123 @@
         ];
 
         let currentAlphabetIndex = 0;
-let alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
-let reverseMapping = {};
+        let alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
+        let reverseMapping = {};
 
-function updateReverseMapping() {
-    reverseMapping = {};
-    for (let [original, mapped] of Object.entries(alphabetMapping)) {
-        reverseMapping[mapped] = original;
-    }
-}
-
-function displayMapping() {
-    const mappingDiv = document.getElementById('alphabetMapping');
-    mappingDiv.innerHTML = '';
-    
-    for (let [original, mapped] of Object.entries(alphabetMapping)) {
-        const mappingItem = document.createElement('div');
-        mappingItem.className = 'mapping-item';
-        mappingItem.textContent = `${original} → ${mapped}`;
-        mappingDiv.appendChild(mappingItem);
-    }
-
-    document.getElementById('currentAlphabetNumber').textContent = currentAlphabetIndex + 1;
-}
-
-function switchToNextAlphabet() {
-    currentAlphabetIndex = (currentAlphabetIndex + 1) % 5;
-    alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
-    updateReverseMapping();
-    displayMapping();
-    updateExamples();
-
-    // Pulisci i campi di input/output
-    document.getElementById('inputText').value = '';
-    document.getElementById('outputText').value = '';
-    document.getElementById('inputEncrypted').value = '';
-    document.getElementById('outputDecrypted').value = '';
-}
-
-function encryptText() {
-    const input = document.getElementById('inputText').value.toUpperCase();
-    const output = input.split('').map(char => {
-        if (alphabetMapping[char]) {
-            return alphabetMapping[char];
+        function updateReverseMapping() {
+            reverseMapping = {};
+            for (let [original, mapped] of Object.entries(alphabetMapping)) {
+                reverseMapping[mapped] = original;
+            }
         }
-        return char; // Mantieni i caratteri non alfabetici invariati
-    }).join('');
-    
-    document.getElementById('outputText').value = output;
-}
 
-function decryptText() {
-    const input = document.getElementById('inputEncrypted').value.toUpperCase();
-    const output = input.split('').map(char => {
-        if (reverseMapping[char]) {
-            return reverseMapping[char];
+        function displayMapping() {
+            const mappingDiv = document.getElementById('alphabetMapping');
+            mappingDiv.innerHTML = '';
+            
+            for (let [original, mapped] of Object.entries(alphabetMapping)) {
+                const mappingItem = document.createElement('div');
+                mappingItem.className = 'mapping-item';
+                mappingItem.textContent = `${original} → ${mapped}`;
+                mappingDiv.appendChild(mappingItem);
+            }
+
+            document.getElementById('currentAlphabetNumber').textContent = currentAlphabetIndex + 1;
         }
-        return char; // Mantieni i caratteri non alfabetici invariati
-    }).join('');
-    
-    document.getElementById('outputDecrypted').value = output;
-}
 
-function updateExamples() {
-    const examples = ['CIAO', 'SEGRETO', 'MESSAGGIO'];
-    const exampleSection = document.getElementById('exampleSection');
-    exampleSection.innerHTML = '';
+        function switchToNextAlphabet() {
+            currentAlphabetIndex = (currentAlphabetIndex + 1) % 5;
+            alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
+            updateReverseMapping();
+            displayMapping();
+            updateExamples();
 
-    examples.forEach(example => {
-        const encrypted = example.split('').map(char => alphabetMapping[char] || char).join('');
-        const decrypted = encrypted.split('').map(char => reverseMapping[char] || char).join('');
-        
-        const card = document.createElement('div');
-        card.className = 'example-card';
-        card.innerHTML = `
-            <strong>Originale:</strong> ${example}<br>
-            <strong>Cifrato:</strong> ${encrypted}<br>
-            <strong>Decifrato:</strong> ${decrypted}
-        `;
-        exampleSection.appendChild(card);
-    });
-}
-
-// Matrix Animation
-function createMatrixRain() {
-    const matrixBg = document.getElementById('matrixBg');
-    const width = window.innerWidth;
-    const columns = Math.floor(width / 20);
-
-    for (let i = 0; i < columns; i++) {
-        const column = document.createElement('div');
-        column.className = 'matrix-column';
-        column.style.left = (i * 20) + 'px';
-        column.style.animationDuration = (Math.random() * 3 + 2) + 's';
-        
-        let content = '';
-        const length = Math.floor(Math.random() * 30 + 20);
-        for (let j = 0; j < length; j++) {
-            content += Math.random() > 0.5 ? '1' : '0';
-            content += '<br>';
+            // Pulisci i campi di input/output
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputText').value = '';
+            document.getElementById('inputEncrypted').value = '';
+            document.getElementById('outputDecrypted').value = '';
         }
-        column.innerHTML = content;
-        matrixBg.appendChild(column);
-    }
-}
 
-// Theme Toggle
-function toggleTheme() {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    html.setAttribute('data-theme', newTheme);
-    
-    // Aggiungi un'animazione di transizione
-    document.body.style.opacity = '0';
-    setTimeout(() => {
-        document.body.style.opacity = '1';
-    }, 200);
-}
+        function encryptText() {
+            const input = document.getElementById('inputText').value.toUpperCase();
+            const output = input.split('').map(char => {
+                if (alphabetMapping[char]) {
+                    return alphabetMapping[char];
+                }
+                return char; // Mantieni i caratteri non alfabetici invariati
+            }).join('');
+            
+            document.getElementById('outputText').value = output;
+        }
 
-// Inizializza il sistema
-updateReverseMapping();
-displayMapping();
-updateExamples();
-createMatrixRain();
+        function decryptText() {
+            const input = document.getElementById('inputEncrypted').value.toUpperCase();
+            const output = input.split('').map(char => {
+                if (reverseMapping[char]) {
+                    return reverseMapping[char];
+                }
+                return char; // Mantieni i caratteri non alfabetici invariati
+            }).join('');
+            
+            document.getElementById('outputDecrypted').value = output;
+        }
 
-// Ricrea l'animazione matrix quando la finestra viene ridimensionata
-window.addEventListener('resize', () => {
-    const matrixBg = document.getElementById('matrixBg');
-    matrixBg.innerHTML = '';
-    createMatrixRain();
-});
-</script>
+        function updateExamples() {
+            const examples = ['CIAO', 'SEGRETO', 'MESSAGGIO'];
+            const exampleSection = document.getElementById('exampleSection');
+            exampleSection.innerHTML = '';
+
+            examples.forEach(example => {
+                const encrypted = example.split('').map(char => alphabetMapping[char] || char).join('');
+                const decrypted = encrypted.split('').map(char => reverseMapping[char] || char).join('');
+                
+                const card = document.createElement('div');
+                card.className = 'example-card';
+                card.innerHTML = `
+                    <strong>Originale:</strong> ${example}<br>
+                    <strong>Cifrato:</strong> ${encrypted}<br>
+                    <strong>Decifrato:</strong> ${decrypted}
+                `;
+                exampleSection.appendChild(card);
+            });
+        }
+
+        // Matrix Animation
+        function createMatrixRain() {
+            const matrixBg = document.getElementById('matrixBg');
+            const width = window.innerWidth;
+            const columns = Math.floor(width / 20);
+
+            for (let i = 0; i < columns; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = (i * 20) + 'px';
+                column.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                
+                let content = '';
+                const length = Math.floor(Math.random() * 30 + 20);
+                for (let j = 0; j < length; j++) {
+                    content += Math.random() > 0.5 ? '1' : '0';
+                    content += '<br>';
+                }
+                column.innerHTML = content;
+                matrixBg.appendChild(column);
+            }
+        }
+
+        // Inizializza il sistema
+        updateReverseMapping();
+        displayMapping();
+        updateExamples();
+        createMatrixRain();
+
+        // Ricrea l'animazione matrix quando la finestra viene ridimensionata
+        window.addEventListener('resize', () => {
+            const matrixBg = document.getElementById('matrixBg');
+            matrixBg.innerHTML = '';
+            createMatrixRain();
+        });
+    </script>
 </body>
 </html>
