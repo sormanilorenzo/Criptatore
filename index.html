@@ -362,78 +362,168 @@
                 Y: 'B', Z: 'A'
             }
         ];
-
+    
+        // Definizione delle 5 mappature per i numeri
+        const predefinedNumberMappings = [
+            {
+                '0': '53', '1': '25', '2': '47', '3': '81', '4': '69',
+                '5': '92', '6': '14', '7': '36', '8': '70', '9': '58'
+            },
+            {
+                '0': '91', '1': '42', '2': '76', '3': '15', '4': '83',
+                '5': '67', '6': '29', '7': '54', '8': '38', '9': '04'
+            },
+            {
+                '0': '84', '1': '37', '2': '95', '3': '62', '4': '18',
+                '5': '43', '6': '70', '7': '29', '8': '56', '9': '11'
+            },
+            {
+                '0': '72', '1': '59', '2': '31', '3': '94', '4': '26',
+                '5': '87', '6': '45', '7': '13', '8': '68', '9': '90'
+            },
+            {
+                '0': '16', '1': '83', '2': '49', '3': '27', '4': '75',
+                '5': '38', '6': '92', '7': '61', '8': '04', '9': '50'
+            }
+        ];
+    
         let currentAlphabetIndex = 0;
         let alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
+        let numberMapping = predefinedNumberMappings[currentAlphabetIndex];
         let reverseMapping = {};
-
-        function updateReverseMapping() {
+        let reverseNumberMapping = {};
+    
+        function updateReverseMappings() {
+            // Aggiorna mapping lettere
             reverseMapping = {};
             for (let [original, mapped] of Object.entries(alphabetMapping)) {
                 reverseMapping[mapped] = original;
             }
+            
+            // Aggiorna mapping numeri
+            reverseNumberMapping = {};
+            for (let [original, mapped] of Object.entries(numberMapping)) {
+                reverseNumberMapping[mapped] = original;
+            }
         }
-
+    
         function displayMapping() {
             const mappingDiv = document.getElementById('alphabetMapping');
             mappingDiv.innerHTML = '';
             
+            // Mostra mappatura lettere
             for (let [original, mapped] of Object.entries(alphabetMapping)) {
                 const mappingItem = document.createElement('div');
                 mappingItem.className = 'mapping-item';
                 mappingItem.textContent = `${original} → ${mapped}`;
                 mappingDiv.appendChild(mappingItem);
             }
-
+    
+            // Mostra mappatura numeri
+            for (let [original, mapped] of Object.entries(numberMapping)) {
+                const mappingItem = document.createElement('div');
+                mappingItem.className = 'mapping-item';
+                mappingItem.style.backgroundColor = 'var(--matrix-color)';
+                mappingItem.textContent = `${original} → ${mapped}`;
+                mappingDiv.appendChild(mappingItem);
+            }
+    
             document.getElementById('currentAlphabetNumber').textContent = currentAlphabetIndex + 1;
         }
-
+    
         function switchToNextAlphabet() {
             currentAlphabetIndex = (currentAlphabetIndex + 1) % 5;
             alphabetMapping = predefinedAlphabets[currentAlphabetIndex];
-            updateReverseMapping();
+            numberMapping = predefinedNumberMappings[currentAlphabetIndex];
+            updateReverseMappings();
             displayMapping();
             updateExamples();
-
+    
             // Pulisci i campi di input/output
             document.getElementById('inputText').value = '';
             document.getElementById('outputText').value = '';
             document.getElementById('inputEncrypted').value = '';
             document.getElementById('outputDecrypted').value = '';
         }
-
+    
         function encryptText() {
             const input = document.getElementById('inputText').value.toUpperCase();
-            const output = input.split('').map(char => {
+            let output = '';
+            
+            for (let i = 0; i < input.length; i++) {
+                const char = input[i];
                 if (alphabetMapping[char]) {
-                    return alphabetMapping[char];
+                    output += alphabetMapping[char];
+                } else if (numberMapping[char]) {
+                    output += numberMapping[char];
+                } else {
+                    output += char; // Mantieni i caratteri non alfanumerici invariati
                 }
-                return char; // Mantieni i caratteri non alfabetici invariati
-            }).join('');
+            }
             
             document.getElementById('outputText').value = output;
         }
-
+    
         function decryptText() {
             const input = document.getElementById('inputEncrypted').value.toUpperCase();
-            const output = input.split('').map(char => {
-                if (reverseMapping[char]) {
-                    return reverseMapping[char];
+            let output = '';
+            
+            for (let i = 0; i < input.length; i++) {
+                const char = input[i];
+                // Controlla prima la mappatura dei numeri a due cifre
+                if (i < input.length - 1) {
+                    const twoDigits = char + input[i + 1];
+                    if (reverseNumberMapping[twoDigits]) {
+                        output += reverseNumberMapping[twoDigits];
+                        i++; // Salta il carattere successivo poiché fa parte del numero a due cifre
+                        continue;
+                    }
                 }
-                return char; // Mantieni i caratteri non alfabetici invariati
-            }).join('');
+                
+                // Se non è un numero cifrato, prova con le lettere
+                if (reverseMapping[char]) {
+                    output += reverseMapping[char];
+                } else {
+                    output += char;
+                }
+            }
             
             document.getElementById('outputDecrypted').value = output;
         }
-
+    
         function updateExamples() {
-            const examples = ['CIAO', 'SEGRETO', 'MESSAGGIO'];
+            const examples = ['CIAO123', 'SEGRETO456', 'MSG789'];
             const exampleSection = document.getElementById('exampleSection');
             exampleSection.innerHTML = '';
-
+    
             examples.forEach(example => {
-                const encrypted = example.split('').map(char => alphabetMapping[char] || char).join('');
-                const decrypted = encrypted.split('').map(char => reverseMapping[char] || char).join('');
+                let encrypted = '';
+                for (let char of example) {
+                    if (alphabetMapping[char]) {
+                        encrypted += alphabetMapping[char];
+                    } else if (numberMapping[char]) {
+                        encrypted += numberMapping[char];
+                    } else {
+                        encrypted += char;
+                    }
+                }
+    
+                let decrypted = '';
+                for (let i = 0; i < encrypted.length; i++) {
+                    if (i < encrypted.length - 1) {
+                        const twoDigits = encrypted[i] + encrypted[i + 1];
+                        if (reverseNumberMapping[twoDigits]) {
+                            decrypted += reverseNumberMapping[twoDigits];
+                            i++;
+                            continue;
+                        }
+                    }
+                    if (reverseMapping[encrypted[i]]) {
+                        decrypted += reverseMapping[encrypted[i]];
+                    } else {
+                        decrypted += encrypted[i];
+                    }
+                }
                 
                 const card = document.createElement('div');
                 card.className = 'example-card';
@@ -445,13 +535,13 @@
                 exampleSection.appendChild(card);
             });
         }
-
+    
         // Matrix Animation
         function createMatrixRain() {
             const matrixBg = document.getElementById('matrixBg');
             const width = window.innerWidth;
             const columns = Math.floor(width / 20);
-
+    
             for (let i = 0; i < columns; i++) {
                 const column = document.createElement('div');
                 column.className = 'matrix-column';
@@ -468,13 +558,13 @@
                 matrixBg.appendChild(column);
             }
         }
-
+    
         // Inizializza il sistema
-        updateReverseMapping();
+        updateReverseMappings();
         displayMapping();
         updateExamples();
         createMatrixRain();
-
+    
         // Ricrea l'animazione matrix quando la finestra viene ridimensionata
         window.addEventListener('resize', () => {
             const matrixBg = document.getElementById('matrixBg');
